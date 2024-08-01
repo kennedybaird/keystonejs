@@ -2,8 +2,11 @@
 /** @jsx jsx */
 
 import { type ComponentProps, Fragment, type FormEvent, useMemo, useState } from 'react'
-import { Button } from '@keystone-ui/button'
+import { ActionButton } from '@keystar/ui/button'
+import { Text } from '@keystar/ui/typography'
+
 import { Box, Divider, Heading, Stack, VisuallyHidden, jsx, useTheme } from '@keystone-ui/core'
+import { Button } from '@keystone-ui/button'
 import { Select } from '@keystone-ui/fields'
 import { ChevronLeftIcon } from '@keystone-ui/icons/icons/ChevronLeftIcon'
 import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon'
@@ -55,12 +58,10 @@ export function FilterAdd ({
 
   return (
     <Fragment>
-      <Button tone="active" {...trigger.props} ref={trigger.ref} onClick={() => setOpen(!isOpen)}>
-        <Box as="span" marginRight="xsmall">
-          Filter List
-        </Box>
+      <ActionButton {...trigger.props} ref={trigger.ref} onPress={() => setOpen(!isOpen)}>
+          <Text>Filter</Text>
         <ChevronDownIcon size="small" />
-      </Button>
+      </ActionButton>
       <PopoverDialog
         aria-label={`Filters options, list of filters to apply to the ${listKey} list`}
         arrow={arrow}

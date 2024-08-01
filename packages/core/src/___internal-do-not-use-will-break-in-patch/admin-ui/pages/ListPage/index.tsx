@@ -3,15 +3,19 @@
 
 import { Fragment, type HTMLAttributes, type ReactNode, useEffect, useMemo, useState } from 'react'
 
+import { ActionButton } from '@keystar/ui/button'
+import { VStack } from '@keystar/ui/layout'
+import { ProgressCircle } from '@keystar/ui/progress'
+import { SearchField } from '@keystar/ui/search-field'
+import { Heading, Text } from '@keystar/ui/typography'
+
 import { Button } from '@keystone-ui/button'
-import { Box, Center, Heading, jsx, Stack, useTheme, VisuallyHidden } from '@keystone-ui/core'
-import { CheckboxControl, TextInput } from '@keystone-ui/fields'
+import { Box, jsx, Stack, useTheme, VisuallyHidden } from '@keystone-ui/core'
+import { CheckboxControl } from '@keystone-ui/fields'
 import { ArrowRightCircleIcon } from '@keystone-ui/icons/icons/ArrowRightCircleIcon'
-import { LoadingDots } from '@keystone-ui/loading'
 import { AlertDialog } from '@keystone-ui/modals'
 import { useToasts } from '@keystone-ui/toast'
 
-import { SearchIcon } from '@keystone-ui/icons/icons/SearchIcon'
 import { type ListMeta } from '../../../../types'
 import {
   getRootGraphQLFieldsFromFieldController,
@@ -21,7 +25,7 @@ import {
 } from '../../../../admin-ui/utils'
 import { gql, type TypedDocumentNode, useMutation, useQuery } from '../../../../admin-ui/apollo'
 import { CellLink } from '../../../../admin-ui/components'
-import { PageContainer, HEADER_HEIGHT } from '../../../../admin-ui/components/PageContainer'
+import { PageContainer } from '../../../../admin-ui/components/PageContainer'
 import { Pagination, PaginationLabel, usePaginationParams } from '../../../../admin-ui/components/Pagination'
 import { useList } from '../../../../admin-ui/context'
 import { GraphQLErrorNotice } from '../../../../admin-ui/components/GraphQLErrorNotice'
@@ -162,7 +166,6 @@ function ListPage ({ listKey }: ListPageProps) {
   const searchLabels = searchFields.map(key => list.fields[key].label)
 
   const searchParam = typeof query.search === 'string' ? query.search : ''
-  const [searchString, updateSearchString] = useState(searchParam)
   const search = useFilter(searchParam, list, searchFields)
   const updateSearch = (value: string) => {
     const { search, ...queries } = query
@@ -264,34 +267,23 @@ function ListPage ({ listKey }: ListPageProps) {
             <p css={{ marginTop: '24px', maxWidth: '704px' }}>{list.description}</p>
           )}
           <Stack across gap="medium" align="center" marginTop="xlarge">
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-                updateSearch(searchString)
-              }}
-            >
-              <Stack across>
-                <TextInput
-                  css={{ borderRadius: '4px 0px 0px 4px' }}
-                  autoFocus
-                  value={searchString}
-                  onChange={e => updateSearchString(e.target.value)}
-                  placeholder={`Search by ${searchLabels.length ? searchLabels.join(', ') : 'ID'}`}
-                />
-                <Button css={{ borderRadius: '0px 4px 4px 0px' }} type="submit">
-                  <SearchIcon />
-                </Button>
-              </Stack>
-            </form>
-            {showCreate && <CreateButtonLink list={list} />}
+            <SearchField
+              aria-label={`Search by ${searchLabels.length ? searchLabels.join(', ') : 'ID'}`}
+              defaultValue={searchParam}
+              onClear={() => updateSearch('')}
+              onSubmit={updateSearch}
+              placeholder='Search…'
+              width="alias.singleLineWidth"
+            />
+            {showCreate && <CreateButtonLink list={list}>Add</CreateButtonLink>}
             {data.count || filters.filters.length ? (
               <FilterAdd listKey={listKey} filterableFields={filterableFields} />
             ) : null}
             {filters.filters.length ? <FilterList filters={filters.filters} list={list} /> : null}
             {Boolean(filters.filters.length || query.sortBy !== undefined || query.fields || query.search) && (
-              <Button size="small" onClick={resetToDefaults}>
-                Reset to defaults
-              </Button>
+              <ActionButton onPress={resetToDefaults} prominence="low">
+                Clear filters
+              </ActionButton>
             )}
           </Stack>
           {data.count ? (
@@ -325,8 +317,10 @@ function ListPage ({ listKey }: ListPageProps) {
                         singular={list.singular}
                         total={data.count}
                       />
-                      , sorted by <SortSelection list={list} orderableFields={orderableFields} />
-                      with{' '}
+                      <Text>
+                        , sorted by <SortSelection list={list} orderableFields={orderableFields} />
+                        with{' '}
+                      </Text>
                       <FieldSelection
                         list={list}
                         fieldModesByFieldPath={listViewFieldModesByField}
@@ -358,9 +352,9 @@ function ListPage ({ listKey }: ListPageProps) {
           )}
         </Fragment>
       ) : (
-        <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading item data" size="large" tone="passive" />
-        </Center>
+        <VStack height="100%" alignItems="center" justifyContent="center">
+          <ProgressCircle aria-label='loading items' size="large" isIndeterminate  />
+        </VStack>
       )}
     </PageContainer>
   )
@@ -368,20 +362,7 @@ function ListPage ({ listKey }: ListPageProps) {
 
 const ListPageHeader = ({ listKey }: { listKey: string }) => {
   const list = useList(listKey)
-  return (
-    <Fragment>
-      <div
-        css={{
-          alignItems: 'center',
-          display: 'flex',
-          flex: 1,
-          justifyContent: 'space-between',
-        }}
-      >
-        <Heading type="h3">{list.label}</Heading>
-      </div>
-    </Fragment>
-  )
+  return <Heading elementType="h1" size="small">{list.label}</Heading>
 }
 
 const ResultsSummaryContainer = ({ children }: { children: ReactNode }) => (
@@ -635,12 +616,14 @@ function ListTable ({
                   href={{
                     query: {
                       ...query,
-                      sortBy: sort?.field === path && sort.direction === 'ASC' ? `-${path}` : path,
+                      sortBy: sort?.field === path && sort?.direction === 'ASC' ? `-${path}` : path,
                     },
                   }}
                 >
                   {label}
-                  {sort?.field === path && <SortDirectionArrow direction={sort.direction} />}
+                  {sort?.field === path && sort?.direction && (
+                    <SortDirectionArrow direction={sort.direction} />
+                  )}
                 </Link>
               </TableHeaderCell>
             )

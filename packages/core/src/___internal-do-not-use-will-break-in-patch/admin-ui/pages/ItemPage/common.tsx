@@ -1,15 +1,19 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
-import { Heading, jsx, useTheme } from '@keystone-ui/core'
-import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon'
-import { Fragment, type HTMLAttributes, type ReactNode } from 'react'
+import { type HTMLAttributes, type ReactNode } from 'react'
+import { Breadcrumbs, Item } from '@keystar/ui/breadcrumbs'
+import { breakpointQueries } from '@keystar/ui/style'
+import { Heading } from '@keystar/ui/typography'
+
+import { jsx, useTheme } from '@keystone-ui/core'
+
 import { Container } from '../../../../admin-ui/components/Container'
-import { Link } from '../../../../admin-ui/router'
+import { useRouter } from '../../../../admin-ui/router'
 import { type ListMeta } from '../../../../types'
 
 export function ItemPageHeader (props: { list: ListMeta, label: string }) {
-  const { palette, spacing } = useTheme()
+  const router = useRouter()
 
   return (
     <Container
@@ -29,38 +33,16 @@ export function ItemPageHeader (props: { list: ListMeta, label: string }) {
         }}
       >
         {props.list.isSingleton ? (
-          <Heading type="h3">{props.list.label}</Heading>
+          <Heading elementType="h1" size="small">{props.list.label}</Heading>
         ) : (
-          <Fragment>
-            <Heading type="h3">
-              <Link href={`/${props.list.path}`} css={{ textDecoration: 'none' }}>
-                {props.list.label}
-              </Link>
-            </Heading>
-            <div
-              css={{
-                color: palette.neutral500,
-                marginLeft: spacing.xsmall,
-                marginRight: spacing.xsmall,
-              }}
-            >
-              <ChevronRightIcon />
-            </div>
-            <Heading
-              as="h1"
-              type="h3"
-              css={{
-                minWidth: 0,
-                maxWidth: '100%',
-                overflow: 'hidden',
-                flex: 1,
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+          <Breadcrumbs flex size="medium" minWidth="alias.singleLineWidth">
+            <Item href={`/${props.list.path}`}>
+              {props.list.label}
+            </Item>
+            <Item href={router.asPath}>
               {props.label}
-            </Heading>
-          </Fragment>
+            </Item>
+          </Breadcrumbs>
         )}
       </div>
     </Container>
@@ -80,7 +62,7 @@ export function ColumnLayout (props: HTMLAttributes<HTMLDivElement>) {
           display: 'grid',
           gap: spacing.none,
           gridTemplateColumns: `100vw`,
-          '@media (min-width: 576px)': {
+          [breakpointQueries.above.mobile]: {
             gridTemplateColumns: `2fr 1fr`,
             gap: spacing.xlarge,
           },

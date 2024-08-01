@@ -4,10 +4,11 @@
 import copyToClipboard from 'clipboard-copy'
 import { useRouter } from 'next/router'
 import {
-  Fragment,
   type HTMLAttributes,
-  memo,
+  type PropsWithChildren,
   type ReactElement,
+  Fragment,
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -15,12 +16,18 @@ import {
   useState,
 } from 'react'
 
+import { Icon } from '@keystar/ui/icon'
+import { fileWarningIcon } from '@keystar/ui/icon/icons/fileWarningIcon'
+import { VStack } from '@keystar/ui/layout'
+import { Notice } from '@keystar/ui/notice'
+import { ProgressCircle } from '@keystar/ui/progress'
+import { SlotProvider } from '@keystar/ui/slots'
+import { Heading, Text } from '@keystar/ui/typography'
+
 import { Button } from '@keystone-ui/button'
-import { Box, Center, Stack, Text, jsx, useTheme } from '@keystone-ui/core'
-import { LoadingDots } from '@keystone-ui/loading'
+import { Box, Stack, jsx, useTheme } from '@keystone-ui/core'
 import { ClipboardIcon } from '@keystone-ui/icons/icons/ClipboardIcon'
 import { AlertDialog } from '@keystone-ui/modals'
-import { Notice } from '@keystone-ui/notice'
 import { useToasts } from '@keystone-ui/toast'
 import { Tooltip } from '@keystone-ui/tooltip'
 import { FieldLabel, TextInput } from '@keystone-ui/fields'
@@ -158,7 +165,7 @@ function ItemForm ({
   usePreventNavigation(useMemo(() => ({ current: hasChangedFields }), [hasChangedFields]))
   return (
     <Fragment>
-      <Box marginTop="xlarge">
+      <VStack gap="large" marginTop="xlarge">
         <GraphQLErrorNotice
           networkError={error?.networkError}
           // we're checking for path.length === 1 because errors with a path larger than 1 will be field level errors
@@ -203,7 +210,7 @@ function ItemForm ({
             [showDelete, list, labelFieldValue, itemId]
           )}
         />
-      </Box>
+      </VStack>
       <StickySidebar>
         <FieldLabel>Item ID</FieldLabel>
         <div
@@ -440,12 +447,12 @@ function ItemPage ({ listKey }: ItemPageProps) {
       }
     >
       {pageLoading ? (
-        <Center css={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
-          <LoadingDots label="Loading item data" size="large" tone="passive" />
-        </Center>
+        <VStack height="100%" alignItems="center" justifyContent="center">
+          <ProgressCircle aria-label='loading item data' size="large" isIndeterminate  />
+        </VStack>
       ) : metaQueryErrors ? (
         <Box marginY="xlarge">
-          <Notice tone="negative">{metaQueryErrors[0].message}</Notice>
+          <Notice tone="critical">{metaQueryErrors[0].message}</Notice>
         </Box>
       ) : (
         <ColumnLayout>
@@ -458,19 +465,19 @@ function ItemPage ({ listKey }: ItemPageProps) {
                 />
               ) : list.isSingleton ? (
                 id === '1' ? (
-                  <Stack gap="medium">
-                    <Notice tone="negative">
-                      {list.label} doesn't exist or you don't have access to it.
-                    </Notice>
+                  <ItemNotFound>
+                    <Text>“{list.label}” doesn’t exist, or you don’t have access to it.</Text>
                     {!data.keystone.adminMeta.list!.hideCreate && <CreateButtonLink list={list} />}
-                  </Stack>
+                  </ItemNotFound>
                 ) : (
-                  <Notice tone="negative">The item with id "{id}" does not exist</Notice>
+                  <ItemNotFound>
+                    <Text>An item with ID <strong>“{id}”</strong> does not exist.</Text>
+                  </ItemNotFound>
                 )
               ) : (
-                <Notice tone="negative">
-                  The item with id "{id}" could not be found or you don't have access to it.
-                </Notice>
+                <ItemNotFound>
+                  <Text>The item with ID <strong>“{id}”</strong> doesn’t exist, or you don’t have access to it.</Text>
+                </ItemNotFound>
               )}
             </Box>
           ) : (
@@ -494,6 +501,26 @@ function ItemPage ({ listKey }: ItemPageProps) {
 
 // Styled Components
 // ------------------------------
+
+function ItemNotFound (props: PropsWithChildren<{}>) {
+  return (
+    <VStack
+      alignItems="center"
+      backgroundColor="surface"
+      borderRadius="medium"
+      gap="large"
+      justifyContent="center"
+      minHeight="scale.3000"
+      padding="xlarge"
+    >
+      <Icon src={fileWarningIcon} color="neutralEmphasis" size="large" />
+      <Heading align="center">Not found</Heading>
+      <SlotProvider slots={{ text: { align:'center', maxWidth: 'scale.5000' } }}>
+        {props.children}
+      </SlotProvider>
+    </VStack>
+  )
+}
 
 const Toolbar = memo(function Toolbar ({
   hasChangedFields,
@@ -523,7 +550,7 @@ const Toolbar = memo(function Toolbar ({
         {hasChangedFields ? (
           <ResetChangesButton onReset={onReset} />
         ) : (
-          <Text weight="medium" paddingX="large" color="neutral600">
+          <Text weight="medium" marginX="large" color="neutralSecondary">
             No changes
           </Text>
         )}

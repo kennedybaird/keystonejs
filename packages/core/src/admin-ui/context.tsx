@@ -1,10 +1,17 @@
+import { createUploadLink } from 'apollo-upload-client'
 import React, { type ReactNode, createContext, useContext, useMemo } from 'react'
+import {
+  ClientSideOnlyDocumentElement,
+  KeystarProvider,
+} from '@keystar/ui/core'
+import { Toaster } from '@keystar/ui/toast'
 import { Center } from '@keystone-ui/core'
-import { ToastProvider } from '@keystone-ui/toast'
 import { LoadingDots } from '@keystone-ui/loading'
 import { DrawerProvider } from '@keystone-ui/modals'
-import { createUploadLink } from 'apollo-upload-client'
+import { ToastProvider } from '@keystone-ui/toast'
+
 import type { AdminConfig, AdminMeta, FieldViews } from '../types'
+import { useRouter } from './router'
 import { useAdminMeta } from './utils/useAdminMeta'
 import { ApolloProvider, ApolloClient, InMemoryCache, type ApolloError, type DocumentNode } from './apollo'
 import {
@@ -30,22 +37,24 @@ type KeystoneContextType = {
 const KeystoneContext = createContext<KeystoneContextType | undefined>(undefined)
 
 type KeystoneProviderProps = {
-  children: ReactNode
   adminConfig: AdminConfig
   adminMetaHash: string
+  apiPath: string
+  children: ReactNode
   fieldViews: FieldViews
   lazyMetadataQuery: DocumentNode
-  apiPath: string
 }
 
 function InternalKeystoneProvider ({
   adminConfig,
-  fieldViews,
   adminMetaHash,
-  children,
-  lazyMetadataQuery,
   apiPath,
+  children,
+  fieldViews,
+  lazyMetadataQuery,
 }: KeystoneProviderProps) {
+  const { push: navigate } = useRouter()
+  const keystarRouter = useMemo(() => ({ navigate }), [navigate])
   const adminMeta = useAdminMeta(adminMetaHash, fieldViews)
   const { authenticatedItem, visibleLists, createViewFieldModes, refetch } =
     useLazyMetadata(lazyMetadataQuery)
@@ -61,25 +70,35 @@ function InternalKeystoneProvider ({
       </Center>
     )
   }
+
   return (
-    <ToastProvider>
-      <DrawerProvider>
-        <KeystoneContext.Provider
-          value={{
-            adminConfig,
-            adminMeta,
-            fieldViews,
-            authenticatedItem,
-            reinitContext,
-            visibleLists,
-            createViewFieldModes,
-            apiPath,
-          }}
-        >
-          {children}
-        </KeystoneContext.Provider>
-      </DrawerProvider>
-    </ToastProvider>
+    <KeystarProvider router={keystarRouter}>
+      <ClientSideOnlyDocumentElement />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+      
+      <ToastProvider>
+        <DrawerProvider>
+          <KeystoneContext.Provider
+            value={{
+              adminConfig,
+              adminMeta,
+              fieldViews,
+              authenticatedItem,
+              reinitContext,
+              visibleLists,
+              createViewFieldModes,
+              apiPath,
+            }}
+          >
+            {children}
+          </KeystoneContext.Provider>
+        </DrawerProvider>
+      </ToastProvider>
+      <Toaster />
+    </KeystarProvider>
   )
 }
 

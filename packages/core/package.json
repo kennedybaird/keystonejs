@@ -190,6 +190,7 @@
     "@graphql-ts/schema": "^0.6.0",
     "@graphql-typed-document-node/core": "^3.1.2",
     "@hapi/iron": "^7.0.0",
+    "@keystar/ui": "^0.7.6",
     "@keystone-ui/button": "workspace:^",
     "@keystone-ui/core": "workspace:^",
     "@keystone-ui/fields": "workspace:^",
