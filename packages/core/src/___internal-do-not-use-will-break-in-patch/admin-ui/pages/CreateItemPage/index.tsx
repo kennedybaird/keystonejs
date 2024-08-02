@@ -26,7 +26,7 @@ function CreateItemPage (props: CreateItemPageProps) {
   return (
     <PageContainer
       title={`Create ${list.singular}`}
-      header={<ItemPageHeader list={list} label="Create" />}
+      header={<ItemPageHeader list={list} label="Create" title={`Create ${list.singular}`} />}
     >
       {createViewFieldModes.state === 'loading' ? (
         <LoadingDots label="preparing form" />

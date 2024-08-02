@@ -1,30 +1,44 @@
 import { useRouter } from 'next/router'
-import { type HTMLAttributes, type ReactNode } from 'react'
+import { Fragment, type HTMLAttributes, type ReactNode } from 'react'
 
 import { Breadcrumbs, Item } from '@keystar/ui/breadcrumbs'
 import { HStack } from '@keystar/ui/layout'
 import { breakpointQueries, css, tokenSchema } from '@keystar/ui/style'
-import { Heading } from '@keystar/ui/typography'
+import { Heading, Text } from '@keystar/ui/typography'
 
 import { Container } from '../../../../admin-ui/components/Container'
 import { type ListMeta } from '../../../../types'
 
-export function ItemPageHeader (props: { list: ListMeta, label: string }) {
+type ItemPageHeaderProps = {
+  label: string
+  list: ListMeta
+  title: string
+}
+
+export function ItemPageHeader (props: ItemPageHeaderProps) {
+  const { label, list, title = label } = props
   const router = useRouter()
 
   return (
     <Container flex>
-      {props.list.isSingleton ? (
-        <Heading elementType="h1" size="small">{props.list.label}</Heading>
+      {list.isSingleton ? (
+        <Heading elementType="h1" size="small">{list.label}</Heading>
       ) : (
-        <Breadcrumbs flex size="medium" minWidth="alias.singleLineWidth">
-          <Item href={`/${props.list.path}`}>
-            {props.list.label}
-          </Item>
-          <Item href={router.asPath}>
-            {props.label}
-          </Item>
-        </Breadcrumbs>
+        <Fragment>
+          <Breadcrumbs flex size="medium" minWidth="alias.singleLineWidth">
+            <Item href={`/${list.path}`}>
+              {list.label}
+            </Item>
+            <Item href={router.asPath}>
+              {label}
+            </Item>
+          </Breadcrumbs>
+          
+          {/* Every page must have an H1 for accessibility. */}
+          <Text elementType="h1" visuallyHidden>
+            {title}
+          </Text>
+        </Fragment>
       )}
     </Container>
   )

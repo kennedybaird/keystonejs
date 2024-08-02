@@ -471,6 +471,7 @@ function ItemPage ({ listKey }: ItemPageProps) {
         <ItemPageHeader
           list={list}
           label={pageLoading ? 'Loading...' : pageLabel}
+          title={pageTitle}
         />
       }
     >
