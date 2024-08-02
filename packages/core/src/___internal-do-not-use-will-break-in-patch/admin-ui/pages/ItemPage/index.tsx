@@ -285,7 +285,7 @@ function DeleteButton ({
 }) {
   const [errorDialogValue, setErrorDialogValue] = useState<Error | null>(null)
   const router = useRouter()
-  const [deleteItem, { error, loading }] = useMutation(
+  const [deleteItem] = useMutation(
     gql`mutation ($id: ID!) {
       ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
         id
@@ -319,7 +319,9 @@ function DeleteButton ({
               return
             }
 
-            toastQueue.neutral(`Deleted “${itemLabel}”.`)
+            toastQueue.neutral(`${list.singular} deleted.`, {
+              timeout: 5000,
+            })
             router.push(list.isSingleton ? '/' : `/${list.path}`)
           }}
         >

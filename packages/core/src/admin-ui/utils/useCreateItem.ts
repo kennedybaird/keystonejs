@@ -1,8 +1,10 @@
-import { useToasts } from '@keystone-ui/toast'
-import { type ComponentProps, useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import isDeepEqual from 'fast-deep-equal'
+import { type ComponentProps, useState, useMemo, useRef, useEffect, useCallback } from 'react'
+
+import { toastQueue } from '@keystar/ui/toast'
+
 import { useMutation, gql, type ApolloError } from '../apollo'
-import { useKeystone } from '..'
+import { useKeystone } from '../context'
 import type { ListMeta } from '../../types'
 import { usePreventNavigation } from './usePreventNavigation'
 import type { Fields, Value } from '.'
@@ -18,7 +20,6 @@ type CreateItemHookResult = {
 }
 
 export function useCreateItem (list: ListMeta): CreateItemHookResult {
-  const toasts = useToasts()
   const { createViewFieldModes } = useKeystone()
 
   const [createItem, { loading, error, data: returnedData }] = useMutation(
@@ -117,13 +118,12 @@ export function useCreateItem (list: ListMeta): CreateItemHookResult {
       } catch {
         return undefined
       }
+
       shouldPreventNavigationRef.current = false
-      const label = outputData.item.label || outputData.item.id
-      toasts.addToast({
-        title: label,
-        message: 'Created Successfully',
-        tone: 'positive',
+      toastQueue.positive(`${list.singular} created.`, {
+        timeout: 5000,
       })
+
       return outputData.item
     },
   }
