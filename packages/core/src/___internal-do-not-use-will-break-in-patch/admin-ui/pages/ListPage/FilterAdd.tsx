@@ -1,22 +1,24 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
+import { useRouter } from 'next/router'
 import { type ComponentProps, Fragment, type FormEvent, useMemo, useState } from 'react'
+
 import { ActionButton } from '@keystar/ui/button'
+import { Icon } from '@keystar/ui/icon'
+import { chevronDownIcon } from '@keystar/ui/icon/icons/chevronDownIcon'
 import { Text } from '@keystar/ui/typography'
 
-import { Box, Divider, Heading, Stack, VisuallyHidden, jsx, useTheme } from '@keystone-ui/core'
+import { Divider, Heading, Stack, VisuallyHidden, jsx, useTheme } from '@keystone-ui/core'
 import { Button } from '@keystone-ui/button'
 import { Select } from '@keystone-ui/fields'
 import { ChevronLeftIcon } from '@keystone-ui/icons/icons/ChevronLeftIcon'
 import { ChevronRightIcon } from '@keystone-ui/icons/icons/ChevronRightIcon'
-import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon'
 import { OptionPrimitive, Options } from '@keystone-ui/options'
 import { PopoverDialog, usePopover } from '@keystone-ui/popover'
 
 import { type FieldMeta, type JSONValue } from '../../../../types'
 import { useList } from '../../../../admin-ui/context'
-import { useRouter } from '../../../../admin-ui/router'
 
 type State =
   | { kind: 'selecting-field' }
@@ -59,8 +61,8 @@ export function FilterAdd ({
   return (
     <Fragment>
       <ActionButton {...trigger.props} ref={trigger.ref} onPress={() => setOpen(!isOpen)}>
-          <Text>Filter</Text>
-        <ChevronDownIcon size="small" />
+        <Text>Filter</Text>
+        <Icon src={chevronDownIcon} />
       </ActionButton>
       <PopoverDialog
         aria-label={`Filters options, list of filters to apply to the ${listKey} list`}

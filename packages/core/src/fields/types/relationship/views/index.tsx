@@ -1,6 +1,7 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
+import Link from 'next/link'
 import { Fragment, useState } from 'react'
 
 import { Button } from '@keystone-ui/button'
@@ -15,7 +16,6 @@ import {
   type FieldProps,
   type ListMeta,
 } from '../../../../types'
-import { Link } from '../../../../admin-ui/router'
 import { useKeystone, useList } from '../../../../admin-ui/context'
 import { gql, useQuery } from '../../../../admin-ui/apollo'
 import { CellContainer, CreateItemDrawer } from '../../../../admin-ui/components'

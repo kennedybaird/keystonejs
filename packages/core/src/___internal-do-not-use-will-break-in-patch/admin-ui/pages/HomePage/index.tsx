@@ -15,7 +15,6 @@ import { makeDataGetter } from '../../../../admin-ui/utils'
 import { PageContainer } from '../../../../admin-ui/components/PageContainer'
 import { gql, useQuery } from '../../../../admin-ui/apollo'
 import { useKeystone, useList } from '../../../../admin-ui/context'
-import { Link, type LinkProps } from '../../../../admin-ui/router'
 
 type ListCardProps = {
   listKey: string
@@ -143,7 +142,14 @@ function ListCard ({ listKey, count, hideCreate }: ListCardProps) {
   })()
 
   return (
-    <Grid columns="1fr auto" gap="regular" padding="large" position="relative">
+    <Grid
+      backgroundColor="canvas"
+      borderRadius="medium"
+      columns="minmax(0, 1fr) auto"
+      gap="regular"
+      padding="large"
+      position="relative"
+    >
       <VStack gap="regular">
         <Heading elementType="h3" size="small" truncate>
           <CardLink aria-describedby={countElementId} href={`/${list.path}${list.isSingleton ? '/1' : ''}`}>

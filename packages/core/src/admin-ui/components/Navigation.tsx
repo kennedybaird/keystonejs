@@ -96,7 +96,9 @@ export const NavItem = (props: NavItemProps) => {
 export const NavigationContainer = ({ authenticatedItem, children }: NavigationContainerProps) => {
   return (
     <VStack gap="large" height="100%" paddingY="xlarge">
-      <NavList aria-label="main" flex marginEnd="medium">{children}</NavList>
+      <NavList aria-label="main" flex marginEnd="medium">
+        {children}
+      </NavList>
       <Footer authItem={authenticatedItem} />
     </VStack>
   )
@@ -221,15 +223,15 @@ function DeveloperResources () {
         <Tooltip>Developer resources</Tooltip>
       </TooltipTrigger>
       <Menu>
-        <Item href={apiPath}>
+        <Item href={apiPath} textValue="API explorer">
           <Icon src={fileJson2Icon} />
           <Text>API explorer</Text>
         </Item>
-        <Item target="_blank" href="https://github.com/keystonejs/keystone">
+        <Item target="_blank" href="https://github.com/keystonejs/keystone" textValue="GitHub repository">
           <Icon src={githubIcon} />
           <Text>GitHub repository</Text>
         </Item>
-        <Item target="_blank" href="https://keystonejs.com">
+        <Item target="_blank" href="https://keystonejs.com" textValue="Documentation">
           <Icon src={bookTextIcon} />
           <Text>Documentation</Text>
         </Item>

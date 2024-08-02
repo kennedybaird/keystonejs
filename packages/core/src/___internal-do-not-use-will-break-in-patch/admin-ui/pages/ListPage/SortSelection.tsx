@@ -1,13 +1,16 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
+
+import { useRouter } from 'next/router'
+import { Fragment } from 'react'
+
 import { Button } from '@keystone-ui/button'
 import { Divider, Heading, jsx, Stack } from '@keystone-ui/core'
 import { ChevronDownIcon } from '@keystone-ui/icons/icons/ChevronDownIcon'
 import { Options } from '@keystone-ui/options'
 import { PopoverDialog, usePopover } from '@keystone-ui/popover'
-import { Fragment } from 'react'
+
 import { type ListMeta } from '../../../../types'
-import { useRouter } from '../../../../admin-ui/router'
 import { fieldSelectionOptionsComponents } from './FieldSelection'
 import { useSort } from './useSort'
 

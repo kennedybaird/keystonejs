@@ -1,19 +1,22 @@
 import { createUploadLink } from 'apollo-upload-client'
+import NextHead from 'next/head'
+import { useRouter } from 'next/router'
 import React, { type ReactNode, createContext, useContext, useMemo } from 'react'
+
 import {
   ClientSideOnlyDocumentElement,
   KeystarProvider,
 } from '@keystar/ui/core'
 import { Toaster } from '@keystar/ui/toast'
+
 import { Center } from '@keystone-ui/core'
 import { LoadingDots } from '@keystone-ui/loading'
 import { DrawerProvider } from '@keystone-ui/modals'
 import { ToastProvider } from '@keystone-ui/toast'
 
 import type { AdminConfig, AdminMeta, FieldViews } from '../types'
-import { useRouter } from './router'
-import { useAdminMeta } from './utils/useAdminMeta'
 import { ApolloProvider, ApolloClient, InMemoryCache, type ApolloError, type DocumentNode } from './apollo'
+import { useAdminMeta } from './utils/useAdminMeta'
 import {
   type AuthenticatedItem,
   type VisibleLists,
@@ -73,11 +76,18 @@ function InternalKeystoneProvider ({
 
   return (
     <KeystarProvider router={keystarRouter}>
-      <ClientSideOnlyDocumentElement />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
+      <ClientSideOnlyDocumentElement bodyBackground="surface" />
+      <NextHead>
+        <meta
+          key="viewport"
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </NextHead>
       
       <ToastProvider>
         <DrawerProvider>

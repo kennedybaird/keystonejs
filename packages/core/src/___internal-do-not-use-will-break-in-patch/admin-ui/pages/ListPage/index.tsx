@@ -1,16 +1,18 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { Fragment, type HTMLAttributes, type ReactNode, useEffect, useMemo, useState } from 'react'
 
 import { ActionButton } from '@keystar/ui/button'
-import { VStack } from '@keystar/ui/layout'
+import { Box, HStack, VStack } from '@keystar/ui/layout'
 import { ProgressCircle } from '@keystar/ui/progress'
 import { SearchField } from '@keystar/ui/search-field'
 import { Heading, Text } from '@keystar/ui/typography'
 
 import { Button } from '@keystone-ui/button'
-import { Box, jsx, Stack, useTheme, VisuallyHidden } from '@keystone-ui/core'
+import { jsx, useTheme } from '@keystone-ui/core'
 import { CheckboxControl } from '@keystone-ui/fields'
 import { ArrowRightCircleIcon } from '@keystone-ui/icons/icons/ArrowRightCircleIcon'
 import { AlertDialog } from '@keystone-ui/modals'
@@ -29,7 +31,6 @@ import { PageContainer } from '../../../../admin-ui/components/PageContainer'
 import { Pagination, PaginationLabel, usePaginationParams } from '../../../../admin-ui/components/Pagination'
 import { useList } from '../../../../admin-ui/context'
 import { GraphQLErrorNotice } from '../../../../admin-ui/components/GraphQLErrorNotice'
-import { Link, useRouter } from '../../../../admin-ui/router'
 import { useFilter } from '../../../../fields/types/relationship/views/RelationshipSelect'
 import { CreateButtonLink } from '../../../../admin-ui/components/CreateButtonLink'
 import { FieldSelection } from './FieldSelection'
@@ -166,6 +167,12 @@ function ListPage ({ listKey }: ListPageProps) {
   const searchLabels = searchFields.map(key => list.fields[key].label)
 
   const searchParam = typeof query.search === 'string' ? query.search : ''
+  const [searchString, setSearchString] = useState(searchParam)
+  useEffect(() => {
+    if (searchParam !== searchString) {
+      setSearchString(searchParam)
+    }
+  }, [searchParam])
   const search = useFilter(searchParam, list, searchFields)
   const updateSearch = (value: string) => {
     const { search, ...queries } = query
@@ -253,10 +260,10 @@ function ListPage ({ listKey }: ListPageProps) {
   }
 
   const theme = useTheme()
-  const showCreate = !(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true) || null
+  const showCreate = !(metaQuery.data?.keystone.adminMeta.list?.hideCreate ?? true)
 
   return (
-    <PageContainer header={<ListPageHeader listKey={listKey} />} title={list.label}>
+    <PageContainer header={<ListPageHeader listKey={listKey} showCreate={showCreate} />} title={list.label}>
       {error?.graphQLErrors.length || error?.networkError ? (
         <GraphQLErrorNotice errors={error?.graphQLErrors} networkError={error?.networkError} />
       ) : null}
@@ -266,16 +273,16 @@ function ListPage ({ listKey }: ListPageProps) {
           {list.description !== null && (
             <p css={{ marginTop: '24px', maxWidth: '704px' }}>{list.description}</p>
           )}
-          <Stack across gap="medium" align="center" marginTop="xlarge">
+          <HStack gap="regular" alignItems="center" marginTop="xlarge">
             <SearchField
               aria-label={`Search by ${searchLabels.length ? searchLabels.join(', ') : 'ID'}`}
-              defaultValue={searchParam}
               onClear={() => updateSearch('')}
               onSubmit={updateSearch}
+              onChange={setSearchString}
               placeholder='Search…'
+              value={searchString}
               width="alias.singleLineWidth"
             />
-            {showCreate && <CreateButtonLink list={list}>Add</CreateButtonLink>}
             {data.count || filters.filters.length ? (
               <FilterAdd listKey={listKey} filterableFields={filterableFields} />
             ) : null}
@@ -285,7 +292,7 @@ function ListPage ({ listKey }: ListPageProps) {
                 Clear filters
               </ActionButton>
             )}
-          </Stack>
+          </HStack>
           {data.count ? (
             <Fragment>
               <ResultsSummaryContainer>
@@ -360,9 +367,14 @@ function ListPage ({ listKey }: ListPageProps) {
   )
 }
 
-const ListPageHeader = ({ listKey }: { listKey: string }) => {
+const ListPageHeader = ({ listKey, showCreate }: { listKey: string, showCreate?: boolean }) => {
   const list = useList(listKey)
-  return <Heading elementType="h1" size="small">{list.label}</Heading>
+  return (
+    <Fragment>
+      <Heading elementType="h1" size="small">{list.label}</Heading>
+      {showCreate && <CreateButtonLink list={list}>{`Add ${list.singular}`}</CreateButtonLink>}
+    </Fragment>
+  )
 }
 
 const ResultsSummaryContainer = ({ children }: { children: ReactNode }) => (
@@ -562,7 +574,9 @@ function ListTable ({
   return (
     <Box paddingBottom="xlarge">
       <TableContainer>
-        <VisuallyHidden as="caption">{list.label} list</VisuallyHidden>
+        <Text elementType="caption" visuallyHidden>
+          {list.label} list
+        </Text>
         <colgroup>
           <col width="30" />
           {shouldShowLinkIcon && <col width="30" />}

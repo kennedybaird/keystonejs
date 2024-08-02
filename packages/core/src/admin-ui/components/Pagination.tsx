@@ -1,10 +1,13 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
+
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useEffect } from 'react'
+
 import { jsx, Stack, useTheme } from '@keystone-ui/core'
 import { Select } from '@keystone-ui/fields'
 import { ChevronRightIcon, ChevronLeftIcon } from '@keystone-ui/icons'
-import { Link, useRouter } from '../router'
 
 type PaginationProps = {
   pageSize: number

@@ -1,6 +1,7 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
 
+import NextHead from 'next/head'
 import { Fragment, type HTMLAttributes, type ReactNode, useState } from 'react'
 
 import { ActionButton } from '@keystar/ui/button'
@@ -11,7 +12,6 @@ import { breakpointQueries, css, tokenSchema } from '@keystar/ui/style'
 import { Box, HStack } from '@keystar/ui/layout'
 
 import { jsx } from '@keystone-ui/core'
-import { MenuIcon, XCircleIcon } from '@keystone-ui/icons'
 
 import { Navigation } from './Navigation'
 import { Logo } from './Logo'
@@ -21,8 +21,6 @@ type PageContainerProps = {
   header: ReactNode
   title?: string
 }
-
-export const HEADER_HEIGHT = 64
 
 const PageWrapper = (props: HTMLAttributes<HTMLElement>) => {
   // const { colors } = useTheme();
@@ -34,12 +32,12 @@ const PageWrapper = (props: HTMLAttributes<HTMLElement>) => {
         css={{
           // background: colors.background,
           display: 'grid',
-          gridTemplateRows: `repeat(2,${HEADER_HEIGHT}px) auto`,
+          gridTemplateRows: `repeat(2, ${tokenSchema.size.element.large}) auto`,
           height: '100vh',
           isolation: 'isolate',
           [breakpointQueries.above.mobile]: {
             gridTemplateColumns: `${tokenSchema.size.scale[3600]} minmax(0, 1fr)`,
-            gridTemplateRows: `${HEADER_HEIGHT}px auto`,
+            gridTemplateRows: `${tokenSchema.size.element.xlarge} auto`,
           },
         }}
         {...props}
@@ -100,6 +98,9 @@ export const PageContainer = ({ children, header, title }: PageContainerProps) =
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   return (
     <PageWrapper>
+      <NextHead>
+        <title key="title">{title ? `Keystone - ${title}` : 'Keystone'}</title>
+      </NextHead>
       <HStack
         alignItems="center"
         borderBottom="neutral"
@@ -128,8 +129,6 @@ export const PageContainer = ({ children, header, title }: PageContainerProps) =
         minWidth={0}
         UNSAFE_style={{ visibility: isSidebarOpen ? 'hidden' : 'visible' }}
       >
-        <title>{title ? `Keystone - ${title}` : 'Keystone'}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {header}
       </HStack>
       <Sidebar isSidebarOpen={isSidebarOpen}>

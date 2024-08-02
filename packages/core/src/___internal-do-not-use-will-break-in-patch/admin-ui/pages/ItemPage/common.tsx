@@ -1,97 +1,95 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
+import { useRouter } from 'next/router'
 import { type HTMLAttributes, type ReactNode } from 'react'
+
 import { Breadcrumbs, Item } from '@keystar/ui/breadcrumbs'
-import { breakpointQueries } from '@keystar/ui/style'
+import { HStack } from '@keystar/ui/layout'
+import { breakpointQueries, css, tokenSchema } from '@keystar/ui/style'
 import { Heading } from '@keystar/ui/typography'
 
-import { jsx, useTheme } from '@keystone-ui/core'
-
 import { Container } from '../../../../admin-ui/components/Container'
-import { useRouter } from '../../../../admin-ui/router'
 import { type ListMeta } from '../../../../types'
 
 export function ItemPageHeader (props: { list: ListMeta, label: string }) {
   const router = useRouter()
 
   return (
-    <Container
-      css={{
-        alignItems: 'center',
-        display: 'flex',
-        flex: 1,
-        justifyContent: 'space-between',
-      }}
-    >
-      <div
-        css={{
-          alignItems: 'center',
-          display: 'flex',
-          flex: 1,
-          minWidth: 0,
-        }}
-      >
-        {props.list.isSingleton ? (
-          <Heading elementType="h1" size="small">{props.list.label}</Heading>
-        ) : (
-          <Breadcrumbs flex size="medium" minWidth="alias.singleLineWidth">
-            <Item href={`/${props.list.path}`}>
-              {props.list.label}
-            </Item>
-            <Item href={router.asPath}>
-              {props.label}
-            </Item>
-          </Breadcrumbs>
-        )}
-      </div>
+    <Container flex>
+      {props.list.isSingleton ? (
+        <Heading elementType="h1" size="small">{props.list.label}</Heading>
+      ) : (
+        <Breadcrumbs flex size="medium" minWidth="alias.singleLineWidth">
+          <Item href={`/${props.list.path}`}>
+            {props.list.label}
+          </Item>
+          <Item href={router.asPath}>
+            {props.label}
+          </Item>
+        </Breadcrumbs>
+      )}
     </Container>
   )
 }
 
 export function ColumnLayout (props: HTMLAttributes<HTMLDivElement>) {
-  const { spacing } = useTheme()
-
   return (
     // this container must be relative to catch absolute children
     // particularly the "expanded" document-field, which needs a height of 100%
-    <Container css={{ position: 'relative', height: '100%' }}>
+    <Container position="relative" height="100%">
       <div
-        css={{
-          alignItems: 'start',
+        className={css({
           display: 'grid',
-          gap: spacing.none,
-          gridTemplateColumns: `100vw`,
-          [breakpointQueries.above.mobile]: {
-            gridTemplateColumns: `2fr 1fr`,
-            gap: spacing.xlarge,
+          columnGap: tokenSchema.size.space.xlarge,
+          gridTemplateAreas: '"main" "sidebar" "toolbar"',
+
+          [breakpointQueries.above.tablet]: {
+            gridTemplateColumns: `2fr minmax(${tokenSchema.size.alias.singleLineWidth}, 1fr)`,
+            gridTemplateAreas: '"main sidebar" "toolbar ."',
           },
-        }}
+        })}
         {...props}
       />
     </Container>
   )
 }
 
-export function BaseToolbar (props: { children: ReactNode }) {
-  const { colors, spacing } = useTheme()
-
+export function StickySidebar (props: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      css={{
-        background: colors.background,
-        borderTop: `1px solid ${colors.border}`,
-        bottom: 0,
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginTop: spacing.xlarge,
-        paddingBottom: spacing.xlarge,
-        paddingTop: spacing.xlarge,
-        position: 'sticky',
-        zIndex: 20,
+      className={css({
+        gridArea: 'sidebar',
+        marginTop: tokenSchema.size.space.xlarge,
+
+        [breakpointQueries.above.tablet]: {
+          position: 'sticky',
+          top: tokenSchema.size.space.xlarge,
+        },
+      })}
+      {...props}
+    />
+  )
+}
+
+export function BaseToolbar (props: { children: ReactNode }) {
+  return (
+    <HStack
+      alignItems="center"
+      backgroundColor="surface"
+      borderTop="neutral"
+      gap="regular"
+      gridArea="toolbar"
+      height="element.xlarge"
+      insetBottom={0}
+      marginTop="xlarge"
+      // paddingY={{
+      //   mobile: 'medium',
+      //   tablet: 'xlarge',
+      // }}
+      position={{
+        tablet: 'sticky',
       }}
+      zIndex={20}
     >
       {props.children}
-    </div>
+    </HStack>
   )
 }

@@ -1,10 +1,6 @@
-/** @jsxRuntime classic */
-/** @jsx jsx */
-
 import copyToClipboard from 'clipboard-copy'
 import { useRouter } from 'next/router'
 import {
-  type HTMLAttributes,
   type PropsWithChildren,
   type ReactElement,
   Fragment,
@@ -16,21 +12,21 @@ import {
   useState,
 } from 'react'
 
+import { ActionButton, Button } from '@keystar/ui/button'
 import { Icon } from '@keystar/ui/icon'
 import { fileWarningIcon } from '@keystar/ui/icon/icons/fileWarningIcon'
-import { VStack } from '@keystar/ui/layout'
+import { clipboardIcon } from '@keystar/ui/icon/icons/clipboardIcon'
+import { AlertDialog, Dialog, DialogContainer, DialogTrigger } from '@keystar/ui/dialog'
+import { Box, Grid, VStack } from '@keystar/ui/layout'
 import { Notice } from '@keystar/ui/notice'
 import { ProgressCircle } from '@keystar/ui/progress'
-import { SlotProvider } from '@keystar/ui/slots'
+import { Content, SlotProvider } from '@keystar/ui/slots'
+import { css, tokenSchema } from '@keystar/ui/style'
+import { TextField } from '@keystar/ui/text-field'
+import { toastQueue } from '@keystar/ui/toast'
+import { TooltipTrigger, Tooltip } from '@keystar/ui/tooltip'
 import { Heading, Text } from '@keystar/ui/typography'
 
-import { Button } from '@keystone-ui/button'
-import { Box, Stack, jsx, useTheme } from '@keystone-ui/core'
-import { ClipboardIcon } from '@keystone-ui/icons/icons/ClipboardIcon'
-import { AlertDialog } from '@keystone-ui/modals'
-import { useToasts } from '@keystone-ui/toast'
-import { Tooltip } from '@keystone-ui/tooltip'
-import { FieldLabel, TextInput } from '@keystone-ui/fields'
 import type { ListMeta, FieldMeta } from '../../../../types'
 import {
   type DataGetter,
@@ -42,14 +38,13 @@ import {
   Fields,
   useChangedFieldsAndDataForUpdate,
 } from '../../../../admin-ui/utils'
-
 import { gql, useMutation, useQuery } from '../../../../admin-ui/apollo'
 import { useList } from '../../../../admin-ui/context'
-import { PageContainer, HEADER_HEIGHT } from '../../../../admin-ui/components/PageContainer'
+import { PageContainer } from '../../../../admin-ui/components/PageContainer'
 import { GraphQLErrorNotice } from '../../../../admin-ui/components/GraphQLErrorNotice'
 import { usePreventNavigation } from '../../../../admin-ui/utils/usePreventNavigation'
 import { CreateButtonLink } from '../../../../admin-ui/components/CreateButtonLink'
-import { BaseToolbar, ColumnLayout, ItemPageHeader } from './common'
+import { BaseToolbar, ColumnLayout, ItemPageHeader, StickySidebar } from './common'
 
 type ItemPageProps = {
   listKey: string
@@ -87,7 +82,7 @@ function ItemForm ({
   item: ItemData
 }) {
   const list = useList(listKey)
-  const { spacing, typography } = useTheme()
+  const [errorDialogValue, setErrorDialogValue] = useState<Error | null>(null)
 
   const [update, { loading, error, data }] = useMutation(
     gql`mutation ($data: ${list.gqlNames.updateInputName}!, $id: ID!) {
@@ -126,7 +121,6 @@ function ItemForm ({
   const invalidFields = useInvalidFields(list.fields, state.value)
 
   const [forceValidation, setForceValidation] = useState(false)
-  const toasts = useToasts()
   const onSave = useEventCallback(() => {
     const newForceValidation = invalidFields.size !== 0
     setForceValidation(newForceValidation)
@@ -141,31 +135,38 @@ function ItemForm ({
         // update the item, path being undefined generally indicates a failure in the graphql mutation itself - ie a type error
         const error = errors?.find(x => x.path === undefined || x.path?.length === 1)
         if (error) {
-          toasts.addToast({
-            title: 'Failed to update item',
-            tone: 'negative',
-            message: error.message,
+          toastQueue.critical('Unable to save item.', {
+            actionLabel: 'Details',
+            onAction: () => {
+              setErrorDialogValue(error)
+            },
+            shouldCloseOnAction: true,
           })
         } else {
-          toasts.addToast({
-            // title: data.item[list.labelField] || data.item.id,
-            tone: 'positive',
-            title: 'Saved successfully',
-            // message: 'Saved successfully',
+          // do we need a toast for this?
+          toastQueue.positive('Saved successfully.', {
+            timeout: 5000,
           })
         }
       })
       .catch(err => {
-        toasts.addToast({ title: 'Failed to update item', tone: 'negative', message: err.message })
+        toastQueue.critical('Unable to save item.', {
+          actionLabel: 'Details',
+          onAction: () => {
+            setErrorDialogValue(err)
+          },
+          shouldCloseOnAction: true,
+        })
       })
   })
   const labelFieldValue = list.isSingleton ? list.label : state.item.data?.[list.labelField]
   const itemId = state.item.data?.id!
   const hasChangedFields = !!changedFields.size
   usePreventNavigation(useMemo(() => ({ current: hasChangedFields }), [hasChangedFields]))
+
   return (
     <Fragment>
-      <VStack gap="large" marginTop="xlarge">
+      <VStack gap="large" gridArea="main" marginTop="xlarge">
         <GraphQLErrorNotice
           networkError={error?.networkError}
           // we're checking for path.length === 1 because errors with a path larger than 1 will be field level errors
@@ -188,60 +189,41 @@ function ItemForm ({
           )}
           value={state.value}
         />
-        <Toolbar
-          onSave={onSave}
-          hasChangedFields={!!changedFields.size}
-          onReset={useEventCallback(() => {
-            setValue(state => ({
-              item: state.item,
-              value: deserializeValue(list.fields, state.item),
-            }))
-          })}
-          loading={loading}
-          deleteButton={useMemo(
-            () =>
-              showDelete ? (
-                <DeleteButton
-                  list={list}
-                  itemLabel={(labelFieldValue ?? itemId) as string}
-                  itemId={itemId}
-                />
-              ) : undefined,
-            [showDelete, list, labelFieldValue, itemId]
-          )}
-        />
       </VStack>
+
       <StickySidebar>
-        <FieldLabel>Item ID</FieldLabel>
-        <div
-          css={{
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <TextInput
-            css={{
-              marginRight: spacing.medium,
-              fontFamily: typography.fontFamily.monospace,
-              fontSize: typography.fontSize.small,
+        <Grid gap="regular" columns="1fr auto" alignItems="end">
+          <TextField
+            label="Item ID"
+            value={itemId}
+            isReadOnly
+            onFocus={({ target }) => {
+              if (target instanceof HTMLInputElement) {
+                target.select()
+              }
             }}
-            readOnly
-            value={item.id}
           />
-          <Tooltip content="Copy ID">
-            {props => (
-              <Button
-                {...props}
-                aria-label="Copy ID"
-                onClick={() => {
-                  copyToClipboard(item.id)
-                }}
-              >
-                <ClipboardIcon size="small" />
-              </Button>
-            )}
-          </Tooltip>
-        </div>
+          <TooltipTrigger>
+            <ActionButton
+              aria-label="copy id"
+              onPress={async () => {
+                try {
+                  await copyToClipboard(item.id)
+                } catch (err: any) {
+                  toastQueue.critical('Unable to copy to clipboard.')
+                  return
+                }
+                toastQueue.positive('Copied to clipboard.', {
+                  timeout: 5000,
+                })
+              }}
+            >
+              <Icon src={clipboardIcon} />
+            </ActionButton>
+            <Tooltip>Copy ID</Tooltip>
+          </TooltipTrigger>
+        </Grid>
+
         <Box marginTop="xlarge">
           <Fields
             groups={list.groups}
@@ -261,6 +243,33 @@ function ItemForm ({
           />
         </Box>
       </StickySidebar>
+
+      <Toolbar
+        onSave={onSave}
+        hasChangedFields={!!changedFields.size}
+        onReset={useEventCallback(() => {
+          setValue(state => ({
+            item: state.item,
+            value: deserializeValue(list.fields, state.item),
+          }))
+        })}
+        loading={loading}
+        deleteButton={useMemo(
+          () =>
+            showDelete ? (
+              <DeleteButton
+                list={list}
+                itemLabel={(labelFieldValue ?? itemId) as string}
+                itemId={itemId}
+              />
+            ) : undefined,
+          [showDelete, list, labelFieldValue, itemId]
+        )}
+      />
+
+      <DialogContainer onDismiss={() => setErrorDialogValue(null)} isDismissable>
+        {errorDialogValue && <ErrorDetailsDialog error={errorDialogValue} />}
+      </DialogContainer>
     </Fragment>
   )
 }
@@ -274,8 +283,9 @@ function DeleteButton ({
   itemId: string
   list: ListMeta
 }) {
-  const toasts = useToasts()
-  const [deleteItem, { loading }] = useMutation(
+  const [errorDialogValue, setErrorDialogValue] = useState<Error | null>(null)
+  const router = useRouter()
+  const [deleteItem, { error, loading }] = useMutation(
     gql`mutation ($id: ID!) {
       ${list.gqlNames.deleteMutationName}(where: { id: $id }) {
         id
@@ -283,57 +293,82 @@ function DeleteButton ({
     }`,
     { variables: { id: itemId } }
   )
-  const [isOpen, setIsOpen] = useState(false)
-  const router = useRouter()
 
   return (
     <Fragment>
-      <Button
-        tone="negative"
-        onClick={() => {
-          setIsOpen(true)
-        }}
-      >
-        Delete
-      </Button>
-      <AlertDialog
-        // TODO: change the copy in the title and body of the modal
-        title="Delete Confirmation"
-        isOpen={isOpen}
-        tone="negative"
-        actions={{
-          confirm: {
-            label: 'Delete',
-            action: async () => {
-              try {
-                await deleteItem()
-              } catch (err: any) {
-                return toasts.addToast({
-                  title: `Failed to delete ${list.singular} item: ${itemLabel}`,
-                  message: err.message,
-                  tone: 'negative',
-                })
-              }
-              router.push(list.isSingleton ? '/' : `/${list.path}`)
-              return toasts.addToast({
-                title: itemLabel,
-                message: `Deleted ${list.singular} item successfully`,
-                tone: 'positive',
+      <DialogTrigger>
+        <Button tone="critical">
+          Delete
+        </Button>
+        <AlertDialog
+          tone="critical"
+          title="Delete item"
+          cancelLabel="Cancel"
+          primaryActionLabel="Yes, delete"
+          onPrimaryAction={async () => {
+            try {
+              await deleteItem()
+            } catch (err: any) {
+              toastQueue.critical('Unable to delete item.', {
+                actionLabel: 'Details',
+                onAction: () => {
+                  setErrorDialogValue(err)
+                },
+                shouldCloseOnAction: true,
               })
-            },
-            loading,
-          },
-          cancel: {
-            label: 'Cancel',
-            action: () => {
-              setIsOpen(false)
-            },
-          },
-        }}
-      >
-        Are you sure you want to delete <strong>{itemLabel}</strong>?
-      </AlertDialog>
+              return
+            }
+
+            toastQueue.neutral(`Deleted “${itemLabel}”.`)
+            router.push(list.isSingleton ? '/' : `/${list.path}`)
+          }}
+        >
+          <Text>
+            Are you sure you want to delete <strong>“{itemLabel}”</strong>?
+            This action cannot be undone.
+          </Text>
+        </AlertDialog>
+      </DialogTrigger>
+
+      <DialogContainer onDismiss={() => setErrorDialogValue(null)} isDismissable>
+        {errorDialogValue && <ErrorDetailsDialog error={errorDialogValue} />}
+      </DialogContainer>
     </Fragment>
+  )
+}
+
+function ErrorDetailsDialog (props: { error: Error }) {
+  return (
+    <Dialog>
+      <Heading>Error details</Heading>
+      <Content>
+        <VStack gap="large">
+          <Text weight="medium">
+            {props.error.message}
+          </Text>
+          {props.error.stack && (
+            <Box
+              elementType="pre"
+              backgroundColor="critical"
+              borderRadius="regular"
+              maxHeight="100%"
+              padding="medium"
+              overflow="auto"
+            >
+              <Text
+                color="critical"
+                trim={false}
+                UNSAFE_className={css({
+                  fontFamily: tokenSchema.typography.fontFamily.code
+                })}
+              >
+                {props.error.stack}
+              </Text>
+            </Box>
+          )}
+        </VStack>
+      </Content>
+    </Dialog>
   )
 }
 
@@ -426,11 +461,8 @@ function ItemPage ({ listKey }: ItemPageProps) {
 
   const pageLoading = loading || id === undefined
   const metaQueryErrors = dataGetter.get('keystone').errors
-  const pageTitle: string = list.isSingleton
-    ? list.label
-    : pageLoading
-    ? undefined
-    : (data && data.item && (data.item[list.labelField] || data.item.id)) || id
+  const pageLabel = (data && data.item && (data.item[list.labelField] || data.item.id)) || id
+  const pageTitle: string = list.isSingleton ? list.label : pageLoading ? undefined : pageLabel
 
   return (
     <PageContainer
@@ -438,17 +470,13 @@ function ItemPage ({ listKey }: ItemPageProps) {
       header={
         <ItemPageHeader
           list={list}
-          label={
-            pageLoading
-              ? 'Loading...'
-              : (data && data.item && (data.item[list.labelField] || data.item.id)) || id
-          }
+          label={pageLoading ? 'Loading...' : pageLabel}
         />
       }
     >
       {pageLoading ? (
         <VStack height="100%" alignItems="center" justifyContent="center">
-          <ProgressCircle aria-label='loading item data' size="large" isIndeterminate  />
+          <ProgressCircle aria-label="loading item data" size="large" isIndeterminate  />
         </VStack>
       ) : metaQueryErrors ? (
         <Box marginY="xlarge">
@@ -538,73 +566,35 @@ const Toolbar = memo(function Toolbar ({
   return (
     <BaseToolbar>
       <Button
-        isDisabled={!hasChangedFields}
-        isLoading={loading}
-        weight="bold"
-        tone="active"
-        onClick={onSave}
+        // TODO: implement when `isPending` supported in "@keystar/ui" button
+        // isLoading={loading}
+        prominence="high"
+        onPress={onSave}
       >
-        Save changes
+        Save
       </Button>
-      <Stack align="center" across gap="small">
-        {hasChangedFields ? (
-          <ResetChangesButton onReset={onReset} />
-        ) : (
-          <Text weight="medium" marginX="large" color="neutralSecondary">
-            No changes
-          </Text>
-        )}
-        {deleteButton}
-      </Stack>
+      <ResetButton onReset={onReset} hasChanges={hasChangedFields} />
+      <Box flex />
+      {deleteButton}
     </BaseToolbar>
   )
 })
 
-function ResetChangesButton (props: { onReset: () => void }) {
-  const [isConfirmModalOpen, setConfirmModalOpen] = useState(false)
-
+function ResetButton (props: { onReset: () => void, hasChanges?: boolean }) {
   return (
-    <Fragment>
-      <Button
-        weight="none"
-        onClick={() => {
-          setConfirmModalOpen(true)
-        }}
-      >
-        Reset changes
+    <DialogTrigger>
+      <Button tone="accent" isDisabled={!props.hasChanges}>
+        Reset
       </Button>
       <AlertDialog
-        actions={{
-          confirm: {
-            action: () => props.onReset(),
-            label: 'Reset changes',
-          },
-          cancel: {
-            action: () => setConfirmModalOpen(false),
-            label: 'Cancel',
-          },
-        }}
-        isOpen={isConfirmModalOpen}
-        title="Are you sure you want to reset changes?"
-        tone="negative"
+        title="Reset changes"
+        cancelLabel="Cancel"
+        primaryActionLabel="Yes, reset"
+        autoFocusButton="primary"
+        onPrimaryAction={props.onReset}
       >
-        {null}
+        Are you sure? Lost changes cannot be recovered.
       </AlertDialog>
-    </Fragment>
-  )
-}
-
-function StickySidebar (props: HTMLAttributes<HTMLDivElement>) {
-  const { spacing } = useTheme()
-  return (
-    <div
-      css={{
-        marginTop: spacing.xlarge,
-        marginBottom: spacing.xxlarge,
-        position: 'sticky',
-        top: spacing.xlarge,
-      }}
-      {...props}
-    />
+    </DialogTrigger>
   )
 }
