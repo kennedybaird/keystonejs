@@ -17,6 +17,7 @@ import { Emoji } from '../../../components/primitives/Emoji'
 import { Fragment, type ComponentProps, type ReactNode } from 'react'
 import { Gradient } from '../../../components/primitives/Gradient'
 import { InlineCode } from '../../../components/primitives/Code'
+import { Tick } from '../../../components/icons'
 
 function TimelineItem ({ children }: { children: ReactNode }) {
   return (
@@ -135,8 +136,30 @@ function RoadmapList ({ children }: RoadmapListProps) {
   )
 }
 
+const roadMapSections = {
+  docs: {
+    title: 'Docs',
+    bg: '#f1f3f5',
+    color: '#495057',
+  },
+  fields: {
+    title: 'Fields & Schema',
+    bg: '#fff0f6',
+    color: '#a61e4d',
+  },
+  core: {
+    title: 'Core',
+    bg: '#f3f0ff',
+    color: '#5f3dc4',
+  },
+  admin: {
+    title: 'Admin UI',
+    bg: '#e7f5ff',
+    color: '#1864ab',
+  },
+}
+
 const roadmapItemSectionStyles = {
-  margin: '0rem 0 .75rem',
   borderRadius: '.4rem',
   display: 'inline-block',
   padding: '0.1825rem 0.5rem',
@@ -144,36 +167,51 @@ const roadmapItemSectionStyles = {
   fontWeight: 700,
 }
 
-const roadmapItemSection = {
-  docs: () => (
-    <span css={{ ...roadmapItemSectionStyles, background: '#f1f3f5', color: '#495057' }}>Docs</span>
-  ),
-  'fields and schema': () => (
-    <span css={{ ...roadmapItemSectionStyles, background: '#fff0f6', color: '#a61e4d' }}>
-      Fields & Schema
-    </span>
-  ),
-  core: () => (
-    <span css={{ ...roadmapItemSectionStyles, background: '#f3f0ff', color: '#5f3dc4' }}>Core</span>
-  ),
-  'admin ui': () => (
-    <span css={{ ...roadmapItemSectionStyles, background: '#e7f5ff', color: '#1864ab' }}>
-      Admin UI
-    </span>
-  ),
+interface SectionProps {
+  section: keyof typeof roadMapSections
+  completed?: boolean
 }
+
+const Section: React.FC<SectionProps> = ({ section, completed = false }) => {
+  return (
+    <div css={{
+      display: 'flex',
+      alignItems: 'center',
+      margin: '0rem 0 .75rem',
+      gap: '0.25rem',
+      '& svg': {
+        height: '1.5rem',
+        margin: '0.25rem 0.5rem 0 0'
+      },
+    }}>
+      <span
+        css={{
+          ...roadmapItemSectionStyles,
+          background: completed
+            ? 'linear-gradient(135deg, var(--grad2-1), var(--grad2-2))'
+            : roadMapSections[section].bg,
+          color: completed ? 'white' : roadMapSections[section].color,
+        }}
+      >
+        {roadMapSections[section].title}
+      </span>
+      {completed && <Tick grad="grad2" /> }
+    </div>
+  )
+}
+
 
 type RoadmapItemProps = {
   title: ReactNode
-  section?: keyof typeof roadmapItemSection
+  section: keyof typeof roadMapSections
+  completed?: boolean
   children: ReactNode
 }
 
-function RoadmapItem ({ title, section, children }: RoadmapItemProps) {
-  const Section = section ? roadmapItemSection[section] : null
+function RoadmapItem ({ title, section, completed = false, children }: RoadmapItemProps) {
   return (
     <li>
-      {Section && <Section />}
+      <Section section={section} completed={completed} />
       <Type as="h3" look="heading20bold" margin="0">
         {title}
       </Type>
@@ -361,17 +399,23 @@ export default function Roadmap () {
           Here's what we're working on right now, and what's coming next.
         </Type>
 
-        <Type as="h3" look="heading30" css={{marginTop: '2rem'}}>
+        <Type as="h3" look="heading30" css={{ marginTop: '2rem' }}>
           Current focus
         </Type>
         <RoadmapList>
-          <RoadmapItem title="Conditional fields" section="fields and schema">
+          <RoadmapItem title="Singletons" section="fields" completed>
+            <Fragment>
+              A way to define a single object in schema that's editable in Admin UI and accessible in
+              the GraphQL API. Handy for storing website & social settings, API keys, and more.
+            </Fragment>
+          </RoadmapItem>
+          <RoadmapItem title="Conditional fields" section="fields">
             <Fragment>
               Dynamically showing fields based on the value of other fields is a great way to
               improve editing flow and content integrity.
             </Fragment>
           </RoadmapItem>
-          <RoadmapItem title="Next-gen Admin UI" section="admin ui">
+          <RoadmapItem title="Next-gen Admin UI" section="admin">
             <Fragment>
               Make the Admin UI responsive, accessible and i18n compliant with the battle-tested{' '}
               <a href="https://github.com/Thinkmill/keystatic/tree/main/design-system">
@@ -386,7 +430,7 @@ export default function Roadmap () {
           Next up
         </Type>
         <RoadmapList>
-          <RoadmapItem title="Nested fields" section="fields and schema">
+          <RoadmapItem title="Nested fields" section="fields">
             <Fragment>
               Sometimes you need to manage data in structures that are nested and/or repeating.
               We're working on a way to define these in schema and have them stored as JSON field in
@@ -411,19 +455,19 @@ export default function Roadmap () {
           Further afield
         </Type>
         <RoadmapList>
-          <RoadmapItem title="Content preview" section="admin ui">
+          <RoadmapItem title="Content preview" section="admin">
             <Fragment>
               Built-in tooling for you to give editors a sense of how their content will be consumed
               by end users.
             </Fragment>
           </RoadmapItem>
-          <RoadmapItem title="Custom publishing workflows" section="admin ui">
+          <RoadmapItem title="Custom publishing workflows" section="admin">
             <Fragment>
               Design your own journey from <InlineCode>draft</InlineCode> to{' '}
               <InlineCode>published</InlineCode> to meet the unique needs of your content team.
             </Fragment>
           </RoadmapItem>
-          <RoadmapItem title="Relationship management" section="admin ui">
+          <RoadmapItem title="Relationship management" section="admin">
             <Fragment>
               More powerful interfaces for managing different scales of related data, from small to
               really really large
