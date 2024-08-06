@@ -2,6 +2,11 @@
   "template": "node",
   "container": {
     "startScript": "keystone dev",
-    "node": "16"
+    "node": "16",
+  "files": {
+    "example_utils.ts": {
+      "content": "../example_utils.ts"
+    }
+  }
   }
 }
