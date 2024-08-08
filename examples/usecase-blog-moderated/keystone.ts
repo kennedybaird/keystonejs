@@ -1,5 +1,4 @@
-import { config } from '@keystone-6/core'
-import { fixPrismaPath } from '../example-utils'
+import { config } from '@keystone-6/core' 
 import { lists, type Session } from './schema'
 import type { Context, TypeInfo } from '.keystone/types'
 
@@ -41,7 +40,7 @@ export default config<TypeInfo>({
     url: process.env.DATABASE_URL || 'file:./keystone-example.db',
 
     // WARNING: this is only needed for our monorepo examples, dont do this
-    ...fixPrismaPath,
+    prismaClientPath: 'node_modules/.myprisma/client',
   },
   lists,
   session: sillySessionStrategy,

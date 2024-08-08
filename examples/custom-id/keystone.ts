@@ -1,5 +1,4 @@
-import { config } from '@keystone-6/core'
-import { fixPrismaPath } from '../example-utils'
+import { config } from '@keystone-6/core' 
 import { lists } from './schema'
 import type { TypeInfo } from '.keystone/types'
 
@@ -12,7 +11,7 @@ export default config<TypeInfo>({
     idField: { kind: 'random', bytes: 16, encoding: 'hex' },
 
     // WARNING: this is only needed for our monorepo examples, don't do this
-    ...fixPrismaPath,
+    prismaClientPath: 'node_modules/.myprisma/client',
   },
   lists,
 })

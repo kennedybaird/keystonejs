@@ -15,7 +15,7 @@ const db: KeystoneConfig<TypeInfo>['db'] = {
   },
 
   // WARNING: this is only needed for our monorepo examples, dont do this
-  ...fixPrismaPath,
+  prismaClientPath: 'node_modules/.myprisma/client',
 }
 
 export default config({

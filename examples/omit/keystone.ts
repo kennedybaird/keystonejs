@@ -1,5 +1,4 @@
-import { config } from '@keystone-6/core'
-import { fixPrismaPath } from '../example-utils'
+import { config } from '@keystone-6/core' 
 import { lists } from './schema'
 import type { Context } from '.keystone/types'
 
@@ -52,7 +51,7 @@ export default config({
     },
 
     // WARNING: this is only needed for our monorepo examples, dont do this
-    ...fixPrismaPath,
+    prismaClientPath: 'node_modules/.myprisma/client',
   },
   lists,
 })
