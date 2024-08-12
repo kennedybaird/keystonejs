@@ -10,9 +10,11 @@
     "seed-data": "tsx seed-data.ts"
   },
   "dependencies": {
-    "@keystone-6/core": "^6.2.0"
+    "@keystone-6/core": "^6.2.0",
+    "@prisma/client": "*"
   },
   "devDependencies": {
+    "prisma": "*",
     "tsx": "^4.16.0",
     "typescript": "^5.5.0"
   }

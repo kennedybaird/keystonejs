@@ -1827,7 +1827,13 @@ importers:
       '@keystone-6/core':
         specifier: ^6.2.0
         version: link:../../packages/core
+      '@prisma/client':
+        specifier: '*'
+        version: 5.17.0(prisma@5.17.0)
     devDependencies:
+      prisma:
+        specifier: '*'
+        version: 5.17.0
       tsx:
         specifier: ^4.16.0
         version: 4.17.0
