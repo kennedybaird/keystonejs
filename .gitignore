@@ -11,3 +11,6 @@ __generated__
 # system
 .DS_Store
 *.vscode
+
+examples/**/*/schema.prisma
+examples/**/*/schema.graphql
