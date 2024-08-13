@@ -3,17 +3,17 @@
   "setupTasks": [
     {
       "name": "Installing Dependencies",
-      "command": "yarn install"
+      "command": "pnpm install"
     },
     {
       "name": "Start Dev Server",
-      "command": "yarn dev"
+      "command": "pnpm dev"
     }
   ],
   "tasks": {
     "start": {
       "name": "Start Development",
-      "command": "yarn dev"
+      "command": "pnpm dev"
     }
   }
 }
