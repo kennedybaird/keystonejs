@@ -7,7 +7,7 @@
     "dev": "keystone dev",
     "start": "keystone start",
     "build": "keystone build",
-    "postinstall": "keystone postinstall",
+    "testcommand": "keystone postinstall",
     "test": "node --import tsx --test example-test.ts"
   },
   "dependencies": {

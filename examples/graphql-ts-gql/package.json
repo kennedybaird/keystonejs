@@ -8,7 +8,7 @@
     "start": "keystone start",
     "build": "keystone build",
     "build:ts-gql": "ts-gql build",
-    "postinstall": "keystone postinstall && ts-gql build"
+    "testcommand": "keystone postinstall && ts-gql build"
   },
   "dependencies": {
     "@keystone-6/core": "^6.2.0",

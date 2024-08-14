@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "keystone dev",
     "build": "keystone build",
-    "postinstall": "keystone postinstall"
+    "testcommand": "keystone postinstall"
   },
   "dependencies": {
     "@keystone-6/auth": "workspace:^",

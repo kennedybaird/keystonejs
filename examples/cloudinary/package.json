@@ -7,7 +7,7 @@
     "dev": "keystone dev",
     "start": "keystone start",
     "build": "keystone build",
-    "postinstall": "keystone postinstall"
+    "testcommand": "keystone postinstall"
   },
   "dependencies": {
     "@keystone-6/cloudinary": "^8.0.0",
