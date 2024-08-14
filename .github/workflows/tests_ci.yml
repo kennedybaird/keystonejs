@@ -212,6 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: file:./test.db
+      VERBOSE: true
     strategy:
       matrix:
         test:
