@@ -2,7 +2,7 @@ name: 'CI setup (w/ examples)'
 runs:
   using: 'composite'
   steps:
-    - run: corepack enable pnpm
+    - run: corepack enable
       shell: bash
 
     - uses: actions/setup-node@main

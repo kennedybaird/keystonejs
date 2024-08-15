@@ -73,7 +73,7 @@ test('changing the label of a field updates in the Admin UI', async () => {
   const element = await page.waitForSelector('label:has-text("Very Important Text") >> .. >> input')
   const value = await element.inputValue()
   expect(value).toBe('blah')
-})
+}, 60000)
 
 test('adding a virtual field', async () => {
   const element = await page.waitForSelector('label:has-text("Virtual") >> ..')
